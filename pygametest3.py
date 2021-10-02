@@ -2,6 +2,7 @@
 import pygame
 import pygame.freetype
 import scene_map
+import textblock
 
 # Import random for random numbers
 import random
@@ -17,6 +18,7 @@ from pygame.locals import (
     K_BACKSPACE,
     K_ESCAPE,
     K_RETURN,
+    K_TAB,
     KEYDOWN,
     QUIT,
 )
@@ -42,9 +44,13 @@ clockobject = pygame.time.Clock()
 active_text = ""
 strings = []
 
+pygame.freetype.init()
 game = scene_map.GameMap ("map2.txt")
+text = textblock.TextBlock()
+text.print ("this is line 1")
+text.print ("this is line 2")
 
-
+text_screen = pygame.Surface ( (screen.get_rect().w // 3 - 20, screen.get_rect().h - 20 ))
 while running:
     for event in pygame.event.get():
         # Did the user hit a key?
@@ -52,23 +58,18 @@ while running:
             # Was it the Escape key? If so, stop the loop
             if event.key == K_ESCAPE:
                 running = False
-            elif event.key == K_UP:
-                game.move(0,-1)
-            elif event.key == K_DOWN:
-                game.move(0,1)
-            elif event.key == K_LEFT:
-                game.move(-1, 0)
-            elif event.key == K_RIGHT:
-                game.move(1, 0)
-            elif event.key == K_RETURN:
-                if active_text:
-                    strings.append(active_text)
-                    game.last_input = active_text
-                    active_text = ""
-            elif event.key == K_BACKSPACE:
-                active_text = active_text[:-1]
-            else:
-                active_text += event.unicode
+            if game.state == scene_map.STATE_MOVE:
+                if event.key == K_UP:
+                    game.move(0,-1)
+                elif event.key == K_DOWN:
+                    game.move(0,1)
+                elif event.key == K_LEFT:
+                    game.move(-1, 0)
+                elif event.key == K_RIGHT:
+                    game.move(1, 0)
+                elif event.key == K_TAB:
+                    line = text.get_input(text_screen, screen, screen.get_rect().w * 2 // 3 - 20, 10)
+                    print ("got line {}".format(line))
 
         elif event.type == QUIT:
             running = False
@@ -76,27 +77,13 @@ while running:
     # Fill the screen with black
     screen.fill((0, 0, 0))
 
-    # font = pygame.freetype.Font(None, 24)
-    # y = 0
-    # for str in ["player at ({}, {})".format(game.p_x, game.p_y)] + strings + [active_text]:
-    #     img = font.render_to (screen, (screen.get_rect().w * 2 // 3+10, y+20), str, (255,255,255))
-    #     y += img.h + 5
-    font = pygame.freetype.Font(None, 24)
-    text_screen = pygame.Surface ((screen.get_rect().w // 3 - 20, screen.get_rect().h - 20))
-    y = 0
-    for str in ["player at ({}, {})".format(game.p_x, game.p_y)] + strings + [active_text]:
-        img = font.render_to (text_screen, (0, y), str, (255,255,255))
-        y += img.h + 5
-
-
     map_screen = pygame.Surface( (screen.get_rect().w * 2 // 3 - 20, screen.get_rect().h - 20 ))
     game.render(map_screen)
     screen.blit(map_screen, (10,10))
-    screen.blit(text_screen, (screen.get_rect().w*2//3+20, 20))
 
-
-
-
+    text_screen = pygame.Surface ( (screen.get_rect().w // 3 - 20, screen.get_rect().h - 20 ))
+    text.display(text_screen)
+    screen.blit (text_screen, (screen.get_rect().w * 2 // 3 - 20, 10))
 
 
     # Flip everything to the display

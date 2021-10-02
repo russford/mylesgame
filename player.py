@@ -11,6 +11,7 @@ class Player (object):
         self.weapon = None
         self.armor = None
         self.xp = xp
+        self.pos = (0,0)
 
     def attack (self, target):
         damage = random.randint (0, self.strength)
@@ -18,17 +19,17 @@ class Player (object):
         if target.armor: damage -= random.randint(0, target.armor.stat)
         if damage < 0: damage = 0
         if damage == 0:
-            print ("{} missed!".format(self.name))
+            return "{} missed!".format(self.name)
         else:
-            print ("{} did {} damage to {}!".format(self.name, damage, target.name))
             target.hp -= damage
+            return "{} did {} damage to {}!".format(self.name, damage, target.name)
 
     def special_attack (self, target):
         if random.randint(0,1):
-            print ("special attack succeeded! {} dies immediately!".format(target.name))
             target.hp = 0
+            return "special attack succeeded! {} dies immediately!".format(target.name)
         else:
-            print ("special attack failed!")
+            return "special attack failed!"
 
     def equip (self, item):
         if item.type == "A":
@@ -38,10 +39,13 @@ class Player (object):
         print ("you equipped {}!".format(item.name))
 
     def mirror (self):
-        print ("Name: {}".format(self.name))
-        print ("HP: {}/{}".format(self.hp, self.max_hp))
-        print ("EXP: {}".format(self.xp))
-        print ("STR: {} AGL: {}".format(self.strength, self.agility))
-        print ("Weapon: {} {}".format(self.weapon.name, self.weapon.stat))
-        print ("Armor: {} {}".format(self.armor.name, self.armor.stat))
+        str_list = ["{}".format(self.name),
+                    "HP: {}/{}".format(self.hp, self.max_hp),
+                    "EXP: {}".format(self.xp),
+                    "STR: {} AGL: {}".format(self.strength, self.agility) ]
+        if self.weapon: str_list.append("Weapon: {} {}".format(self.weapon.name, self.weapon.stat))
+        if self.armor: str_list.append("Armor: {} {}".format(self.armor.name, self.armor.stat))
+        return str_list
+
+
 

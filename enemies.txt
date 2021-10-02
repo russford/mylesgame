@@ -1,0 +1,4 @@
+Goblin, 10, 5, 0, 2
+Goblin Archer, 5, 10, 0, 3
+Skeleton, 10, 7, 0, 5
+Skeleton Archer, 10, 10, 0, 6
