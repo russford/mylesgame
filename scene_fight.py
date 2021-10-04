@@ -117,9 +117,10 @@ class SceneFight (scene.Scene):
                   ]
         self.frame_rects = [pygame.rect.Rect(*r) for r in frames]
 
-        sprites = [("sword.png", 3*w//16, 7*h//8),
-                   ("shield.png", 7*w//16, 7*h//8),
-                   ("bag.png", 11*w//16, 7*h//8),
+        sprites = [("sword.png", 2*w//16, 7*h//8),
+                   ("shield.png", 6*w//16, 7*h//8),
+                   ("bag.png", 10*w//16, 7*h//8),
+                   ("run.png", 14*w//16, 7*h//8)
                    ]
 
         size = min (w//8 - 4*b, h//4 - 4*b)
