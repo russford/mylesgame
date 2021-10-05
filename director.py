@@ -34,7 +34,7 @@ class Director (object):
         self.player.equip(self.items["fist"])
         self.player.equip(self.items["clothes"])
 
-        enemy_data = self.load_enemies ("enemies.txt")
+        enemy_data = self.load_enemies ("assets/enemies.txt")
 
         with open(filename, "r") as f:
             game_map = [list(l.strip('\n')) for l in f.readlines()]
