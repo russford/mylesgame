@@ -1,5 +1,5 @@
 import pygame
-import pygame.gfxdraw
+import utils
 import scene
 import random
 
@@ -58,12 +58,18 @@ class SceneFight (scene.Scene):
             pygame.draw.rect(screen, (255, 255, 255), r)
         self.sprites.draw(screen)
 
-        font = pygame.font.SysFont("Arial", 20)
-        renders = [font.render(s, True, (200, 200, 200)) for s in self.strings[-10:] + [self.active_text]]
-        for i, r in enumerate(renders):
-            screen.blit(r, (20, i*20+20))
+        blitter = utils.TextBlit("Arial", 20, (255, 255, 255), 3)
+        screen.blit(blitter(self.strings[-10:] + [self.active_text]), (20, 20))
+
+        player_surf = blitter(self.director.player.mirror())
+        monster_surf = blitter(self.enemy.mirror())
+        w = max (player_surf.get_rect().w, player_surf.get_rect().w)
+        screen.blit(player_surf, (screen.get_rect().w - w - 10, 10))
+        screen.blit(monster_surf, (screen.get_rect().w - w - 10, 20 + player_surf.get_rect().h))
 
     def on_update(self):
+        if self.enemy.hp <= 0 or self.director.player.hp <= 0:
+            self.finish()
         if self.getting_input:
             return
         if self.active_text == "":
@@ -87,11 +93,17 @@ class SceneFight (scene.Scene):
     def finish(self, ran=False):
         if not ran:
             if self.director.player.hp > 0:
-                self.print("you killed {} and got {} XP!".format(self.enemy.name, self.enemy.xp))
+                end_msg = "you killed {} and got {} XP!".format(self.enemy.name, self.enemy.xp)
                 self.director.player.xp += self.enemy.xp
+                finish_scene = SceneFightEnd(self.director, "victory.png", end_msg)
+                finish_scene.next = self.next
             else:
-                self.print("you were slain by {}".format(self.enemy.name))
+                end_msg = "you were slain by {}".format(self.enemy.name)
+                finish_scene = SceneFightEnd(self.director, "defeat.png", end_msg)
+                finish_scene.next = None
+            self.director.set_scene (finish_scene)
         self.done = True
+
 
     def do_attack(self):
         self.print(self.director.player.attack(self.enemy))
@@ -128,15 +140,47 @@ class SceneFight (scene.Scene):
                   ]
         self.frame_rects = [pygame.rect.Rect(*r) for r in frames]
 
-        sprites = [("sword.png",  2*w//16, 7*h//8, "attack"),
-                   ("shield.png", 6*w//16, 7*h//8, "heal"),
-                   ("bag.png",   10*w//16, 7*h//8, "special"),
-                   ("run.png",   14*w//16, 7*h//8, "run")
+        sprites = [("sword.png",    w//8, 7*h//8, "attack"),
+                   ("shield.png", 3*w//8, 7*h//8, "heal"),
+                   ("bag.png",    5*w//8, 7*h//8, "special"),
+                   ("run.png",    7*w//8, 7*h//8, "run")
                    ]
 
         size = min(w//8 - 4*b, h//4 - 4*b)
 
         for filename, cx, cy, action in sprites:
-            self.sprites.add(ActionIcon("images/"+filename, size, cx, cy, action))
+            self.sprites.add(ActionIcon("assets/"+filename, size, cx, cy, action))
+
+class SceneFightEnd (scene.Scene):
+    def __init__(self, director, image_name, message):
+        scene.Scene.__init__(self, director)
+        image = pygame.image.load("assets/"+image_name).convert()
+        font = pygame.font.SysFont("Arial", 20)
+        text = font.render(message, True, (255, 255, 255))
+
+        w = max(text.get_rect().w, image.get_rect().w) + 20
+        h = text.get_rect().h * 2 + image.get_rect().h + 20
+
+        self.surface = pygame.surface.Surface((w, h))
+        self.surface.fill ((255, 255, 255))
+        pygame.draw.rect(self.surface, (0, 0, 0), self.surface.get_rect().inflate(-10, -10))
+
+        self.surface.blit(image, ((w - image.get_rect().w)//2, 10))
+        self.surface.blit(text, ((w - text.get_rect().w)//2, text.get_rect().h + image.get_rect().h + 10))
+
+    def on_event(self, event):
+        if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
+            self.director.set_scene(self.next)
+
+    def on_update(self):
+        pass
+
+    def on_display(self, screen):
+        screen.blit (self.surface,
+                     ((screen.get_rect().w - self.surface.get_rect().w) // 2,
+                      (screen.get_rect().h - self.surface.get_rect().h) // 2))
+
+
+
 
 

@@ -1,7 +1,7 @@
 import pygame
-from collections import defaultdict
 import scene
 import scene_fight
+import utils
 
 from pygame.locals import (
     K_UP,
@@ -15,7 +15,6 @@ from pygame.locals import (
 )
 
 move_dict = {K_UP: (0,-1), K_DOWN: (0,1), K_LEFT: (-1,0), K_RIGHT: (1,0)}
-
 
 class SceneMap (scene.Scene):
     def __init__(self, director):
@@ -35,15 +34,16 @@ class SceneMap (scene.Scene):
 
         pygame.draw.rect(screen, (255, 0, 0), self.map_rect(*self.director.player.pos))
 
-        for mx, my in self.director.monsters.keys():
-            pygame.draw.rect(screen, (0, 255, 0), self.map_rect(mx, my))
+        for pos, m in self.director.monsters.items():
+            if m.hp > 0:
+                pygame.draw.rect(screen, (0, 255, 0), self.map_rect(*pos))
 
         if self.detail_panel:
-            panel = self.build_details(self.director.player)
-            screen.blit (panel, self.map_rect(*self.director.player.pos))
+            blitter = utils.TextBlit ("Arial", 12, (200, 200, 200), 2)
+            screen.blit (blitter(self.director.player.mirror()), self.map_rect(*self.director.player.pos))
             for pos, m in self.director.monsters.items():
-                panel = self.build_details(m)
-                screen.blit(panel, self.map_rect(*pos))
+                screen.blit(blitter(m.mirror()), self.map_rect(*pos))
+
 
     def on_event(self, event):
         if event.type == KEYDOWN:
@@ -59,36 +59,13 @@ class SceneMap (scene.Scene):
 
     def on_update(self):
         for pos, m in self.director.monsters.items():
-            if self.director.player.pos == pos:
+            if self.director.player.pos == pos and m.hp > 0:
                 fight = scene_fight.SceneFight(self.director, m)
-                fight.prev = self
+                fight.next = self
                 self.director.set_scene(fight)
-
-    def build_details (self, player):
-        font = pygame.font.SysFont ("Calibri", 10)
-        renders = [font.render(s, 1, (200,200,200)) for s in player.mirror()]
-        rects = [r.get_rect() for r in renders]
-        h = sum([r.h for r in rects]) + (len(rects)-1) * 2
-        w = max([r.w for r in rects])
-        surf = pygame.surface.Surface((w, h))
-        for i in range(len(renders)):
-            surf.blit(renders[i], (0, 12*i))
-        return surf
-
 
     def map_rect (self, i, j):
         return pygame.Rect(i*self.block, j*self.block, self.block, self.block)
-
-    # def render (self, surface):
-    #     self.block_size = min(surface.get_rect().w // self.map_size[0], surface.get_rect().h // self.map_size[1])
-    #     for i in range(self.map_size[0]):
-    #         for j in range(self.map_size[1]):
-    #             if self.map_dict[(i,j)]:
-    #                 pygame.draw.rect (surface, (128, 128, 128), self.map_rect(i, j))
-    #     pygame.draw.rect (surface, (255,0,0), self.map_rect(self.p_x, self.p_y))
-    #     for mx, my in self.monsters:
-    #         pygame.draw.rect (surface, (0,255,0), self.map_rect (mx, my))
-
 
     def move (self, dir_x, dir_y):
         if (self.p_x + dir_x, self.p_y + dir_y) in self.monsters:

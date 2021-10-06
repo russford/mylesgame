@@ -44,22 +44,25 @@ class Director (object):
                 if game_map[i][j] == "#":
                     self.map_dict[(j, i)] = 1
                 if game_map[i][j] == "P":
-                    self.player.pos = (j,i)
+                    self.player.pos = (j, i)
                 if game_map[i][j] == "M":
                     enemy = Player(*random.choice (enemy_data))
-                    enemy.pos = (j,i)
-                    self.monsters[(j,i)] = enemy
+                    enemy.pos = (j, i)
+                    self.monsters[(j, i)] = enemy
 
     def load_enemies (self, filename):
         enemy_data = []
-        with open (filename, "r") as f:
+        with open(filename, "r") as f:
             for line in f.readlines():
                 data = [d.strip() for d in line.split(",")]
                 enemy_data.append([data[0]] + [int(a) for a in data[1:]])
         return enemy_data
 
     def set_scene (self, scene):
-        self.scene = scene
+        if scene is None:
+            self.quit_flag = True
+        else:
+            self.scene = scene
 
 
 
