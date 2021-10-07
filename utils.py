@@ -25,3 +25,19 @@ class TextBlit (object):
         return self.surface(strings)
 
 
+class SpriteSheet (object):
+    def __init__(self, filename, w, h, color_key=None):
+        self.image = pygame.image.load(filename).convert()
+        self.w = w
+        self.h = h
+        self.color_key = color_key
+
+    def img_at (self, x, y, scale=1):
+        if self.color_key is None:
+            self.color_key = self.image.get_at((0,0))
+        surface = pygame.surface.Surface((self.w, self.h))
+        surface.blit(self.image, (0,0), pygame.rect.Rect(x*self.w, y*self.h, (x+1)*self.w, (y+1)*self.h))
+        if scale != 1.0: surface = pygame.transform.scale(surface, (self.w*scale, self.h*scale))
+        surface.set_colorkey(self.color_key)
+        return surface
+
