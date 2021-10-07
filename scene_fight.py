@@ -91,7 +91,10 @@ class SceneFight (scene.Scene):
             self.active_text = ""
 
     def finish(self, ran=False):
-        if not ran:
+        if ran:
+            finish_scene = SceneFightEnd(self.director, "run.png", "live to fight another day!")
+            finish_scene.next = self.next
+        else:
             if self.director.player.hp > 0:
                 end_msg = "you killed {} and got {} XP!".format(self.enemy.name, self.enemy.xp)
                 self.director.player.xp += self.enemy.xp
@@ -101,9 +104,8 @@ class SceneFight (scene.Scene):
                 end_msg = "you were slain by {}".format(self.enemy.name)
                 finish_scene = SceneFightEnd(self.director, "defeat.png", end_msg)
                 finish_scene.next = None
-            self.director.set_scene (finish_scene)
+        self.director.set_scene (finish_scene)
         self.done = True
-
 
     def do_attack(self):
         self.print(self.director.player.attack(self.enemy))
