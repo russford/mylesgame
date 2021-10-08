@@ -32,12 +32,13 @@ class SpriteSheet (object):
         self.h = h
         self.color_key = color_key
 
-    def img_at (self, x, y, scale=1):
+    def img_at (self, x, y, size=0):
         if self.color_key is None:
             self.color_key = self.image.get_at((0,0))
         surface = pygame.surface.Surface((self.w, self.h))
         surface.blit(self.image, (0,0), pygame.rect.Rect(x*self.w, y*self.h, (x+1)*self.w, (y+1)*self.h))
-        if scale != 1.0: surface = pygame.transform.scale(surface, (self.w*scale, self.h*scale))
+        if size:
+            surface = pygame.transform.scale(surface, (size, size))
         surface.set_colorkey(self.color_key)
         return surface
 
