@@ -31,6 +31,7 @@ class SpriteSheet (object):
         self.w = w
         self.h = h
         self.color_key = color_key
+        self.image.set_colorkey(color_key)
 
     def img_at (self, x, y, size=0):
         if self.color_key is None:
@@ -41,4 +42,42 @@ class SpriteSheet (object):
             surface = pygame.transform.scale(surface, (size, size))
         surface.set_colorkey(self.color_key)
         return surface
+
+    def img_fra (self, fra_x, fra_y):
+        at_x = (fra_x * self.image.get_rect().w) // self.w
+        at_y = (fra_y * self.image.get_rect().h) // self.h
+        return at_x, at_y
+
+    def scaled_sheet (self, scale_factor):
+        return pygame.transform.scale(self.image,
+                                      (int(self.image.get_rect().w * scale_factor),
+                                       int(self.image.get_rect().h * scale_factor)))
+
+
+class Button (object):
+    def __init__(self, text, fontname="Arial", fontsize=20, fontcolor=(255, 255, 255)):
+        self.text = text
+        self.fontname = fontname
+        self.fontsize = fontsize
+        self.fontcolor = fontcolor
+        self.surface = None
+        self.on_click = None
+        self.rect = None
+
+    def on_update(self):
+        font = pygame.font.Font (self.fontname, self.fontsize)
+        render = font.render(self.text, True, self.fontcolor)
+        self.surface = pygame.surface.Surface((2 * render.get_rect().h, render.get_rect().w + 2 * render.get_rect().h))
+        self.surface.fill ((255, 255, 255))
+        self.surface.subsurface(self.surface.get_rect().inflate(-2, -2)).fill((0, 0, 0))
+        self.surface.blit (render, (render.get_rect().h, render.get_rect().h // 2))
+        self.rect = self.surface.get_rect()
+
+    def get_surface (self):
+        if self.surface is None:
+            self.on_update()
+        return self.surface
+
+
+
 

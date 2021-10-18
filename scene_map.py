@@ -44,7 +44,6 @@ class SceneMap (scene.Scene):
             for pos, m in self.director.monsters.items():
                 screen.blit(blitter(m.mirror()), self.map_rect(*pos))
 
-
     def on_event(self, event):
         if event.type == KEYDOWN:
             if event.key in move_dict.keys():
