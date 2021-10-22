@@ -54,30 +54,6 @@ class SpriteSheet (object):
                                        int(self.image.get_rect().h * scale_factor)))
 
 
-class Button (object):
-    def __init__(self, text, fontname="Arial", fontsize=20, fontcolor=(255, 255, 255)):
-        self.text = text
-        self.fontname = fontname
-        self.fontsize = fontsize
-        self.fontcolor = fontcolor
-        self.surface = None
-        self.on_click = None
-        self.rect = None
-
-    def on_update(self):
-        font = pygame.font.Font (self.fontname, self.fontsize)
-        render = font.render(self.text, True, self.fontcolor)
-        self.surface = pygame.surface.Surface((2 * render.get_rect().h, render.get_rect().w + 2 * render.get_rect().h))
-        self.surface.fill ((255, 255, 255))
-        self.surface.subsurface(self.surface.get_rect().inflate(-2, -2)).fill((0, 0, 0))
-        self.surface.blit (render, (render.get_rect().h, render.get_rect().h // 2))
-        self.rect = self.surface.get_rect()
-
-    def get_surface (self):
-        if self.surface is None:
-            self.on_update()
-        return self.surface
-
 
 
 

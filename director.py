@@ -2,6 +2,7 @@ import pygame
 from player import Player
 import random
 import item
+import worldmap
 
 
 class Director (object):
@@ -10,6 +11,7 @@ class Director (object):
         self.scene = None
         self.quit_flag = False
         self.player = None
+        self.worldmap = worldmap.WorldMap()
         self.monsters = {}
         self.items = []
         self.map_dict = {}
@@ -36,13 +38,15 @@ class Director (object):
 
         enemy_data = self.load_enemies ("assets/enemies.txt")
 
+        self.worldmap.load("assets/map.json")
+
         with open(filename, "r") as f:
             game_map = [list(l.strip('\n')) for l in f.readlines()]
         self.map_w, self.map_h = (len(game_map[0]), len(game_map))
         for i in range(len(game_map)):
             for j in range(len(game_map[i])):
                 if game_map[i][j] == "#":
-                    self.map_dict[(j, i)] = 1
+                    self.worldmap[(j, i)] = (1,1)
                 if game_map[i][j] == "P":
                     self.player.pos = (j, i)
                 if game_map[i][j] == "M":

@@ -14,6 +14,7 @@ class Player (object):
         self.armor = None
         self.xp = xp
         self.pos = (0, 0)
+        self.sprite_pos = (0, 0)
 
     def attack(self, target):
         damage = random.randint (0, self.strength)
