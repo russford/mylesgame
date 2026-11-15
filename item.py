@@ -5,7 +5,7 @@ class Item (object):
         self.stat = stat
 
     def __repr__(self):
-        return "{} {}: {} {}".format(self.type, self.name, self.stat)
+        return "{} {}: {}".format(self.type, self.name, self.stat)
 
 def load_items():
     items = [Item("W", "fist", 0),

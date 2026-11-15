@@ -24,6 +24,8 @@ class ActionIcon (pygame.sprite.Sprite):
 
 
 class SceneFight (scene.Scene):
+    esc_quits = False  # Escape clears the typed command instead
+
     def __init__(self, director, enemy):
         scene.Scene.__init__(self, director)
         self.strings = []
@@ -32,6 +34,8 @@ class SceneFight (scene.Scene):
         self.getting_input = False
         self.frame_rects = None
         self.sprites = pygame.sprite.Group()
+        self.blitter = utils.TextBlit("Arial", 20, (255, 255, 255), 3)
+        self.done = False
 
     def on_event(self, event):
         if event.type == KEYDOWN:
@@ -42,12 +46,13 @@ class SceneFight (scene.Scene):
                 self.active_text = ""
             elif event.key == K_BACKSPACE:
                 self.active_text = self.active_text[:-1]
-            else:
+            elif self.getting_input:
                 self.active_text += event.unicode
         if event.type == MOUSEBUTTONDOWN and event.button == 1:
             pos = pygame.mouse.get_pos()
             for icon in [s for s in self.sprites if s.rect.collidepoint(pos)]:
                 self.active_text = icon.action
+                self.strings.append(icon.action)
                 self.getting_input = False
 
     def on_display(self, screen):
@@ -58,18 +63,21 @@ class SceneFight (scene.Scene):
             pygame.draw.rect(screen, (255, 255, 255), r)
         self.sprites.draw(screen)
 
-        blitter = utils.TextBlit("Arial", 20, (255, 255, 255), 3)
+        blitter = self.blitter
         screen.blit(blitter(self.strings[-10:] + [self.active_text]), (20, 20))
 
         player_surf = blitter(self.director.player.mirror())
         monster_surf = blitter(self.enemy.mirror())
-        w = max (player_surf.get_rect().w, player_surf.get_rect().w)
+        w = max(player_surf.get_rect().w, monster_surf.get_rect().w)
         screen.blit(player_surf, (screen.get_rect().w - w - 10, 10))
         screen.blit(monster_surf, (screen.get_rect().w - w - 10, 20 + player_surf.get_rect().h))
 
     def on_update(self):
+        if self.done:
+            return
         if self.enemy.hp <= 0 or self.director.player.hp <= 0:
             self.finish()
+            return
         if self.getting_input:
             return
         if self.active_text == "":
@@ -86,12 +94,17 @@ class SceneFight (scene.Scene):
                 self.do_run()
             else:
                 self.print("you do nothing!")
+            if self.done:  # ran away: the enemy gets no parting shot
+                return
             if self.enemy.hp > 0:
                 self.print(self.enemy.attack(self.director.player))
             self.active_text = ""
 
     def finish(self, ran=False):
         if ran:
+            # step back off the monster's square so the fight doesn't restart at once
+            player = self.director.player
+            player.pos = player.prev_pos
             finish_scene = SceneFightEnd(self.director, "run.png", "live to fight another day!")
             finish_scene.next = self.next
         else:
@@ -181,8 +194,3 @@ class SceneFightEnd (scene.Scene):
         screen.blit (self.surface,
                      ((screen.get_rect().w - self.surface.get_rect().w) // 2,
                       (screen.get_rect().h - self.surface.get_rect().h) // 2))
-
-
-
-
-

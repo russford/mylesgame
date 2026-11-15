@@ -2,6 +2,7 @@ import pygame
 import scene
 import button
 import utils
+import worldmap
 
 from pygame.locals import (
     KEYDOWN,
@@ -12,6 +13,8 @@ from pygame.locals import (
     MOUSEBUTTONDOWN
 )
 
+scroll_dict = {K_UP: (0, -1), K_DOWN: (0, 1), K_LEFT: (-1, 0), K_RIGHT: (1, 0)}
+
 
 class SceneSelectorPanel(scene.Scene):
     def __init__(self, director, spritesheet):
@@ -21,10 +24,13 @@ class SceneSelectorPanel(scene.Scene):
         self.img_rect = None
 
     def on_event(self, event):
-        if event.type == MOUSEBUTTONDOWN:
+        if event.type == MOUSEBUTTONDOWN and self.img_rect is not None:
             fra_x = event.pos[0] / self.img_rect.w
             fra_y = event.pos[1] / self.img_rect.h
-            self.sel = self.spritesheet.img_fra(fra_x, fra_y)
+            sel = self.spritesheet.img_fra(fra_x, fra_y)
+            if sel is None:  # clicked outside the sheet: keep the old selection
+                return
+            self.sel = sel
             self.director.set_scene(self.next)
 
     def on_update(self):
@@ -35,7 +41,7 @@ class SceneSelectorPanel(scene.Scene):
         scale_factor = min(screen.get_rect().w / self.spritesheet.image.get_rect().w,
                            screen.get_rect().h / self.spritesheet.image.get_rect().h)
         sheet = self.spritesheet.scaled_sheet(scale_factor)
-        screen.blit(self.spritesheet.scaled_sheet(scale_factor), (0, 0))
+        screen.blit(sheet, (0, 0))
         self.img_rect = sheet.get_rect()
 
     def sel_sprite(self, size=0):
@@ -54,15 +60,20 @@ class SceneEditor (scene.Scene):
         self.build_buttons()
 
     def on_event(self, event):
+        if event.type == KEYDOWN and event.key in scroll_dict:
+            dx, dy = scroll_dict[event.key]
+            self.map_x += dx
+            self.map_y += dy
         if event.type == MOUSEBUTTONDOWN:
-            if self.map_rect.collidepoint(event.pos):
-                img_size = self.map_rect.w // self.map_size
-                x = int((event.pos[0] - self.map_rect.left) // img_size) + self.map_x
-                y = int((event.pos[1] - self.map_rect.top) // img_size) + self.map_y
-                self.director.worldmap.map_dict[x, y] = self.selector_panel.sel
             for b in self.buttons:
                 if b.rect.collidepoint(event.pos):
                     b.on_click()
+                    return
+            if self.map_rect is not None and self.map_rect.collidepoint(event.pos):
+                img_size = self.map_rect.w // self.map_size
+                x = (event.pos[0] - self.map_rect.left) // img_size + self.map_x
+                y = (event.pos[1] - self.map_rect.top) // img_size + self.map_y
+                self.director.worldmap[x, y] = self.selector_panel.sel
 
     def on_display(self, screen):
         screen.fill((0, 0, 0))
@@ -78,14 +89,15 @@ class SceneEditor (scene.Scene):
     def draw_map (self, surface):
         img_size = surface.get_rect().w // self.map_size
         for pos, img in self.director.worldmap.map_dict.items():
-            if 0 <= pos[0]-self.map_x <= self.map_size and 0 <= pos[1]-self.map_y <= self.map_size:
-                surface.blit(self.spritesheet.img_at(*img, img_size), (pos[0]*img_size, pos[1]*img_size))
+            sx, sy = pos[0] - self.map_x, pos[1] - self.map_y
+            if 0 <= sx < self.map_size and 0 <= sy < self.map_size:
+                surface.blit(self.spritesheet.img_at(*img, img_size), (sx * img_size, sy * img_size))
 
     def on_save(self):
-        self.director.worldmap.save("map.json")
+        self.director.worldmap.save(worldmap.MAP_FILE)
 
     def on_load(self):
-        self.director.worldmap.load("map.json")
+        self.director.worldmap.load(worldmap.MAP_FILE)
 
     def on_tool(self):
         self.buttons[0].make_dirty()
@@ -108,5 +120,3 @@ class SceneEditor (scene.Scene):
 
     def on_update(self):
         pass
-
-
