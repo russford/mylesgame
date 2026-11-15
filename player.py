@@ -1,5 +1,4 @@
 import random
-import pygame
 
 
 class Player (object):
@@ -14,6 +13,7 @@ class Player (object):
         self.armor = None
         self.xp = xp
         self.pos = (0, 0)
+        self.prev_pos = (0, 0)
         self.sprite_pos = (30, 15)
 
     def attack(self, target):
@@ -56,10 +56,3 @@ class Player (object):
         if self.armor:
             str_list.append("Armor: {} {}".format(self.armor.name, self.armor.stat))
         return str_list
-
-
-
-
-
-
-
